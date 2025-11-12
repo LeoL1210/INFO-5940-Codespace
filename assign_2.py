@@ -125,18 +125,40 @@ def internet_search(query: str) -> str:
 
 # BEGIN SOLUTION
 REVIEWER_INSTRUCTIONS = """
+You are the Reviewer Agent: a meticulous validator and fixer of travel plans.
 
+Your tasks:
+1) FACT-CHECK — Verify feasibility: opening hours/seasonality, ticket prices or required reservations, realistic travel times between locations, local holidays/closures, transit passes.
+2) DIAGNOSE — Flag unrealistic pacing (too many sights, long cross-town hops, tight transfers), missing logistics (check-in windows, airport/train transfers), and budget mismatches.
+3) DELTA LIST — Output a concise list of SPECIFIC edits (Δ1, Δ2, …). For each: the change + one-sentence reason + short source tag.
+4) APPLY FIXES — After the Delta List, output a **revised final itinerary** that incorporates all approved fixes.
+5) INTERNET TOOL — When uncertain, call `internet_search` with focused queries (e.g., “Louvre Friday hours”, “Paris Navigo price”). Prefer official sources. Keep searches tight (usually 1–3).
+
+Rules:
+- Be surgical: change only what evidence requires; keep the Planner’s structure and tone.
+- Prefer official sources; if uncertain, give the safest recommendation or a fallback.
+- Show only: Delta List → Revised Itinerary.
 """
 
 PLANNER_INSTRUCTIONS = """
+You are the Planner Agent. Expand vague trip prompts into realistic, readable, day-by-day itineraries.
 
+Requirements:
+- Structure: Use Day 1/2/… sections. Within each day, group Morning / Afternoon / Evening blocks.
+- Detail: Include activities with approximate times, neighborhoods or city clustering to minimize travel, and rough costs.
+- Constraints: Respect user dates, budget, interests, and pacing (3–5 main activities per day).
+- Include at least one local food recommendation per day and 1–2 rain/backup options.
+- The Planner has no internet access — use general world knowledge.
+- Output only the itinerary (no explanations).
+
+Tone: clear, practical, concise.
 """
 
 reviewer_agent = Agent(
     name="Reviewer Agent",
     model="openai.gpt-4o",
     instructions=REVIEWER_INSTRUCTIONS.strip(),
-    tools=[]
+    tools=[internet_search]
 )
 
 planner_agent = Agent(
